@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="MarketPip logo">
+<rect width="96" height="96" rx="24" fill="#0E1B3D"/>
+<line x1="25" y1="42" x2="25" y2="74" stroke="#F04452" stroke-width="3" stroke-linecap="round"/>
+<rect x="19" y="50" width="12" height="16" rx="3" fill="#F04452"/>
+<line x1="41" y1="28" x2="41" y2="66" stroke="#12B76A" stroke-width="3" stroke-linecap="round"/>
+<rect x="35" y="36" width="12" height="22" rx="3" fill="#12B76A"/>
+<line x1="57" y1="32" x2="57" y2="60" stroke="#F04452" stroke-width="3" stroke-linecap="round"/>
+<rect x="51" y="40" width="12" height="14" rx="3" fill="#F04452"/>
+<line x1="73" y1="12" x2="73" y2="56" stroke="#12B76A" stroke-width="3" stroke-linecap="round"/>
+<rect x="67" y="20" width="12" height="26" rx="3" fill="#12B76A"/>
+</svg>

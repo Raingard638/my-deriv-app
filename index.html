@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarketPip</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg class="bg" aria-hidden="true" viewBox="0 0 1200 700" preserveAspectRatio="none">
+  <path class="base" stroke="#12B76A" d="M0 520 L90 470 L170 500 L260 420 L340 450 L430 360 L520 390 L610 300 L700 330 L790 240 L880 270 L970 180 L1060 210 L1200 120"/>
+  <path class="run" stroke="#12B76A" d="M0 520 L90 470 L170 500 L260 420 L340 450 L430 360 L520 390 L610 300 L700 330 L790 240 L880 270 L970 180 L1060 210 L1200 120"/>
+  <path class="base" stroke="#F04452" d="M0 180 L100 230 L190 200 L280 280 L370 250 L460 340 L550 310 L640 400 L730 370 L820 460 L910 430 L1000 520 L1100 490 L1200 580"/>
+  <path class="run" stroke="#F04452" d="M0 180 L100 230 L190 200 L280 280 L370 250 L460 340 L550 310 L640 400 L730 370 L820 460 L910 430 L1000 520 L1100 490 L1200 580"/>
+</svg>
+
+<main>
+  <img class="mark" src="logo.svg" alt="MarketPip logo">
+  <h1>MarketPip</h1>
+  <p>Trade with your Deriv account. Log in securely through Deriv. MarketPip never sees your password.</p>
+  <div class="actions">
+    <button class="primary" id="login">Log in with Deriv</button>
+    <button class="secondary" id="signup">Create a Deriv account</button>
+  </div>
+  <p class="small">MarketPip is an independent site and is not affiliated with, endorsed by, or operated by Deriv. Trading carries a high level of risk and you can lose all of your invested capital.</p>
+</main>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var cfg = window.MARKETPIP;
+  function b64url(bytes) {
+    var s = "";
+    new Uint8Array(bytes).forEach(function (b) { s += String.fromCharCode(b); });
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function rand(n) { return b64url(crypto.getRandomValues(new Uint8Array(n))); }
+
+  async function start(signup) {
+    if (!cfg.clientId || cfg.clientId === "YOUR_DERIV_CLIENT_ID") {
+      alert("Set your Deriv client ID in config.js first.");
+      return;
+    }
+    var verifier = rand(64);
+    var state = rand(16);
+    sessionStorage.setItem("pkce_verifier", verifier);
+    sessionStorage.setItem("oauth_state", state);
+    var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+    var params = new URLSearchParams({
+      response_type: "code",
+      client_id: cfg.clientId,
+      redirect_uri: cfg.redirectUri,
+      scope: cfg.scope,
+      state: state,
+      code_challenge: b64url(digest),
+      code_challenge_method: "S256"
+    });
+    if (signup) params.set("prompt", "registration");
+    window.location.href = "https://auth.deriv.com/oauth2/auth?" + params.toString();
+  }
+
+  document.getElementById("login").addEventListener("click", function () { start(false); });
+  document.getElementById("signup").addEventListener("click", function () { start(true); });
+})();
+</script>
+</body>
+</html>

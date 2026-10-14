@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarketPip | Signing in</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <img class="mark" src="logo.svg" alt="MarketPip logo">
+  <h1>MarketPip</h1>
+  <p id="status" role="status">Signing you in…</p>
+  <div class="card" id="accounts" hidden>
+    <strong>Your Deriv accounts</strong>
+    <ul id="list"></ul>
+  </div>
+  <a class="btn secondary" href="index.html">Back to home</a>
+</main>
+
+<script src="config.js"></script>
+<script>
+(async function () {
+  var cfg = window.MARKETPIP;
+  var status = document.getElementById("status");
+  var q = new URLSearchParams(window.location.search);
+
+  function fail(msg) { status.textContent = msg; }
+
+  if (q.get("error")) { return fail("Login was not completed: " + (q.get("error_description") || q.get("error"))); }
+
+  var code = q.get("code");
+  var state = q.get("state");
+  var savedState = sessionStorage.getItem("oauth_state");
+  var verifier = sessionStorage.getItem("pkce_verifier");
+
+  if (!code || !state || !savedState || state !== savedState || !verifier) {
+    return fail("Login could not be verified. Please go back and try again.");
+  }
+
+  try {
+    // The code is exchanged on the server (api/token.js), never in the browser.
+    var res = await fetch("/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code, code_verifier: verifier, redirect_uri: cfg.redirectUri })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.access_token) { return fail("Could not complete sign-in. Please try again."); }
+
+    sessionStorage.setItem("access_token", data.access_token);
+    sessionStorage.removeItem("pkce_verifier");
+    sessionStorage.removeItem("oauth_state");
+    history.replaceState({}, "", "callback.html");
+    status.textContent = "You are signed in.";
+
+    var acc = await fetch("/api/accounts", { headers: { Authorization: "Bearer " + data.access_token } });
+    var accData = await acc.json();
+    var rows = Array.isArray(accData) ? accData : (accData.data || accData.accounts || []);
+    var list = document.getElementById("list");
+    rows.forEach(function (a) {
+      var li = document.createElement("li");
+      li.textContent = [a.account_id || a.loginid || "Account", a.account_type, a.currency].filter(Boolean).join(" · ");
+      list.appendChild(li);
+    });
+    if (rows.length) { document.getElementById("accounts").hidden = false; }
+  } catch (e) {
+    fail("Something went wrong. Please try again.");
+  }
+})();
+</script>
+</body>
+</html>
